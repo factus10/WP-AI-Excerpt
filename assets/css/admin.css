@@ -1,0 +1,137 @@
+#wp-ai-excerpt-generator {
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+#wp-ai-excerpt-generator label {
+    display: inline-block;
+    margin-right: 15px;
+    font-weight: 600;
+}
+
+#wp_ai_excerpt_length {
+    width: 80px;
+    margin-left: 10px;
+}
+
+#wp_ai_excerpt_generate {
+    margin-left: 15px;
+}
+
+#wp_ai_excerpt_status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+#wp_ai_excerpt_status.error {
+    display: block;
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+}
+
+#wp_ai_excerpt_status.success {
+    display: block;
+    background-color: #efe;
+    border: 1px solid #cfc;
+    color: #3c3;
+}
+
+#wp_ai_excerpt_result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#wp_ai_excerpt_result h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+#wp_ai_excerpt_text {
+    width: 100%;
+    margin-bottom: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#wp_ai_excerpt_use {
+    margin-top: 10px;
+}
+
+/* Loading animation */
+#wp_ai_excerpt_generate:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+    #wp-ai-excerpt-generator label {
+        display: block;
+        margin-bottom: 10px;
+    }
+    
+    #wp_ai_excerpt_generate {
+        margin-left: 0;
+        margin-top: 15px;
+        display: block;
+        width: 100%;
+    }
+}
+
+/* Sidebar button styles */
+.wp-ai-excerpt-sidebar-btn {
+    background: #f7f7f7;
+    border-color: #ccc;
+    color: #555;
+    text-align: center;
+}
+
+.wp-ai-excerpt-sidebar-btn:hover {
+    background: #fafafa;
+    border-color: #999;
+    color: #23282d;
+}
+
+.wp-ai-excerpt-sidebar-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.wp-ai-excerpt-sidebar-btn .dashicons {
+    margin-right: 4px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Dialog styles */
+#wp-ai-excerpt-dialog p {
+    margin-bottom: 15px;
+}
+
+#wp-ai-excerpt-dialog label {
+    display: block;
+    font-weight: 600;
+}
+
+#wp-ai-excerpt-dialog input[type="number"] {
+    margin-top: 5px;
+}
+
+/* Spinner alignment for sidebar button */
+.wp-ai-excerpt-sidebar-btn .spinner {
+    float: none !important;
+    margin: 0 auto !important;
+    display: inline-block;
+    vertical-align: middle;
+}
