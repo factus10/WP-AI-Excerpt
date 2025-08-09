@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: WP AI Excerpt
- * Plugin URI: https://github.com/yourusername/wp-ai-excerpt
+ * Plugin URI: https://github.com/factus10/WP-AI-Excerpt
  * Description: Automatically generate excerpts for posts and pages using AI
- * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://yourwebsite.com
+ * Version: 1.0
+ * Author: David
+ * Author URI: https://github.com/factus10
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-ai-excerpt
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WP_AI_EXCERPT_VERSION', '1.0.0');
+define('WP_AI_EXCERPT_VERSION', '1.0');
 define('WP_AI_EXCERPT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_AI_EXCERPT_PLUGIN_PATH', plugin_dir_path(__FILE__));
 

@@ -1,9 +1,9 @@
 === WP AI Excerpt ===
-Contributors: yourname
+Contributors: factus10
 Tags: excerpt, ai, openai, gpt, summary, content
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 1.0.0
+Stable tag: 1.0
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -64,10 +64,10 @@ Yes, the plugin works with any post type that supports excerpts.
 
 == Changelog ==
 
-= 1.0.0 =
+= 1.0 =
 * Initial release
 
 == Upgrade Notice ==
 
-= 1.0.0 =
+= 1.0 =
 Initial release of WP AI Excerpt.
