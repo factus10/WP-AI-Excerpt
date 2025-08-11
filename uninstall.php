@@ -15,6 +15,7 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 delete_option('wp_ai_excerpt_default_length');
 delete_option('wp_ai_excerpt_api_key');
 delete_option('wp_ai_excerpt_model');
+delete_option('wp_ai_excerpt_prompt');
 
 // Remove any transients if used
 global $wpdb;

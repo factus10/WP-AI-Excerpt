@@ -75,6 +75,7 @@ class WP_AI_Excerpt {
         add_option('wp_ai_excerpt_default_length', 150);
         add_option('wp_ai_excerpt_api_key', '');
         add_option('wp_ai_excerpt_model', 'gpt-3.5-turbo');
+        add_option('wp_ai_excerpt_prompt', 'Create a concise and informative excerpt of approximately {length} words from the following content. The excerpt should accurately summarize the main points without being overly promotional:');
     }
     
     /**
@@ -104,6 +105,7 @@ class WP_AI_Excerpt {
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_api_key');
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_default_length');
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_model');
+        register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_prompt');
         
         add_settings_section(
             'wp_ai_excerpt_main',
@@ -132,6 +134,14 @@ class WP_AI_Excerpt {
             'wp_ai_excerpt_model',
             __('AI Model', 'wp-ai-excerpt'),
             array($this, 'model_field_callback'),
+            'wp-ai-excerpt',
+            'wp_ai_excerpt_main'
+        );
+        
+        add_settings_field(
+            'wp_ai_excerpt_prompt',
+            __('AI Prompt Template', 'wp-ai-excerpt'),
+            array($this, 'prompt_field_callback'),
             'wp-ai-excerpt',
             'wp_ai_excerpt_main'
         );
@@ -174,6 +184,24 @@ class WP_AI_Excerpt {
             <option value="gpt-4-turbo-preview" <?php selected($model, 'gpt-4-turbo-preview'); ?>>GPT-4 Turbo</option>
         </select>
         <p class="description"><?php _e('Select the AI model to use for excerpt generation.', 'wp-ai-excerpt'); ?></p>
+        <?php
+    }
+    
+    /**
+     * Prompt field callback
+     */
+    public function prompt_field_callback() {
+        $default_prompt = 'Create a concise and informative excerpt of approximately {length} words from the following content. The excerpt should accurately summarize the main points without being overly promotional:';
+        $prompt = get_option('wp_ai_excerpt_prompt', $default_prompt);
+        ?>
+        <textarea id="wp_ai_excerpt_prompt" name="wp_ai_excerpt_prompt" rows="4" class="large-text"><?php echo esc_textarea($prompt); ?></textarea>
+        <p class="description">
+            <?php _e('Customize the prompt sent to the AI. Use {length} as a placeholder for the word count.', 'wp-ai-excerpt'); ?><br>
+            <?php _e('Examples:', 'wp-ai-excerpt'); ?><br>
+            <em><?php _e('• For neutral tone: "Summarize the following content in {length} words, focusing on key facts and information:"', 'wp-ai-excerpt'); ?></em><br>
+            <em><?php _e('• For academic tone: "Write a scholarly abstract of {length} words for the following content:"', 'wp-ai-excerpt'); ?></em><br>
+            <em><?php _e('• For casual tone: "Write a friendly, conversational summary of about {length} words for this content:"', 'wp-ai-excerpt'); ?></em>
+        </p>
         <?php
     }
     
@@ -333,11 +361,15 @@ class WP_AI_Excerpt {
             return new WP_Error('no_api_key', __('OpenAI API key is not configured.', 'wp-ai-excerpt'));
         }
         
-        $prompt = sprintf(
-            "Create a compelling excerpt of approximately %d words from the following content. The excerpt should capture the main idea and entice readers to read more:\n\n%s",
-            $length,
-            substr($content, 0, 3000) // Limit content to avoid token limits
-        );
+        // Get custom prompt template or use default
+        $default_prompt = 'Create a concise and informative excerpt of approximately {length} words from the following content. The excerpt should accurately summarize the main points without being overly promotional:';
+        $prompt_template = get_option('wp_ai_excerpt_prompt', $default_prompt);
+        
+        // Replace {length} placeholder with actual length
+        $prompt_instruction = str_replace('{length}', $length, $prompt_template);
+        
+        // Combine prompt with content
+        $prompt = $prompt_instruction . "\n\n" . substr($content, 0, 3000); // Limit content to avoid token limits
         
         $response = wp_remote_post('https://api.openai.com/v1/chat/completions', array(
             'headers' => array(
@@ -349,7 +381,7 @@ class WP_AI_Excerpt {
                 'messages' => array(
                     array(
                         'role' => 'system',
-                        'content' => 'You are a professional content writer who creates engaging excerpts.'
+                        'content' => 'You are a professional content writer who creates excerpts based on specific instructions.'
                     ),
                     array(
                         'role' => 'user',
