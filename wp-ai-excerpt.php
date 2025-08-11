@@ -73,8 +73,11 @@ class WP_AI_Excerpt {
     public function activate() {
         // Set default options
         add_option('wp_ai_excerpt_default_length', 150);
+        add_option('wp_ai_excerpt_api_provider', 'openai');
         add_option('wp_ai_excerpt_api_key', '');
+        add_option('wp_ai_excerpt_anthropic_api_key', '');
         add_option('wp_ai_excerpt_model', 'gpt-3.5-turbo');
+        add_option('wp_ai_excerpt_anthropic_model', 'claude-3-haiku-20240307');
         add_option('wp_ai_excerpt_prompt', 'Create a concise and informative excerpt of approximately {length} words from the following content. The excerpt should accurately summarize the main points without being overly promotional:');
     }
     
@@ -102,9 +105,12 @@ class WP_AI_Excerpt {
      * Register settings
      */
     public function register_settings() {
+        register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_api_provider');
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_api_key');
+        register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_anthropic_api_key');
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_default_length');
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_model');
+        register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_anthropic_model');
         register_setting('wp_ai_excerpt_settings', 'wp_ai_excerpt_prompt');
         
         add_settings_section(
@@ -115,9 +121,25 @@ class WP_AI_Excerpt {
         );
         
         add_settings_field(
+            'wp_ai_excerpt_api_provider',
+            __('API Provider', 'wp-ai-excerpt'),
+            array($this, 'api_provider_field_callback'),
+            'wp-ai-excerpt',
+            'wp_ai_excerpt_main'
+        );
+        
+        add_settings_field(
             'wp_ai_excerpt_api_key',
             __('OpenAI API Key', 'wp-ai-excerpt'),
             array($this, 'api_key_field_callback'),
+            'wp-ai-excerpt',
+            'wp_ai_excerpt_main'
+        );
+        
+        add_settings_field(
+            'wp_ai_excerpt_anthropic_api_key',
+            __('Anthropic API Key', 'wp-ai-excerpt'),
+            array($this, 'anthropic_api_key_field_callback'),
             'wp-ai-excerpt',
             'wp_ai_excerpt_main'
         );
@@ -139,6 +161,14 @@ class WP_AI_Excerpt {
         );
         
         add_settings_field(
+            'wp_ai_excerpt_anthropic_model',
+            __('Anthropic Model', 'wp-ai-excerpt'),
+            array($this, 'anthropic_model_field_callback'),
+            'wp-ai-excerpt',
+            'wp_ai_excerpt_main'
+        );
+        
+        add_settings_field(
             'wp_ai_excerpt_prompt',
             __('AI Prompt Template', 'wp-ai-excerpt'),
             array($this, 'prompt_field_callback'),
@@ -155,12 +185,43 @@ class WP_AI_Excerpt {
     }
     
     /**
+     * API provider field callback
+     */
+    public function api_provider_field_callback() {
+        $provider = get_option('wp_ai_excerpt_api_provider', 'openai');
+        ?>
+        <select id="wp_ai_excerpt_api_provider" name="wp_ai_excerpt_api_provider" class="wp-ai-excerpt-provider-select">
+            <option value="openai" <?php selected($provider, 'openai'); ?>>OpenAI</option>
+            <option value="anthropic" <?php selected($provider, 'anthropic'); ?>>Anthropic (Claude)</option>
+        </select>
+        <p class="description"><?php _e('Select which AI provider to use for excerpt generation.', 'wp-ai-excerpt'); ?></p>
+        <?php
+    }
+    
+    /**
      * API key field callback
      */
     public function api_key_field_callback() {
         $api_key = get_option('wp_ai_excerpt_api_key');
+        $provider = get_option('wp_ai_excerpt_api_provider', 'openai');
+        $style = $provider !== 'openai' ? 'display:none;' : '';
+        echo '<div class="wp-ai-excerpt-openai-fields" style="' . $style . '">';
         echo '<input type="password" id="wp_ai_excerpt_api_key" name="wp_ai_excerpt_api_key" value="' . esc_attr($api_key) . '" class="regular-text" />';
-        echo '<p class="description">' . __('Enter your OpenAI API key.', 'wp-ai-excerpt') . '</p>';
+        echo '<p class="description">' . __('Enter your OpenAI API key. Get one at', 'wp-ai-excerpt') . ' <a href="https://platform.openai.com/" target="_blank">platform.openai.com</a></p>';
+        echo '</div>';
+    }
+    
+    /**
+     * Anthropic API key field callback
+     */
+    public function anthropic_api_key_field_callback() {
+        $api_key = get_option('wp_ai_excerpt_anthropic_api_key');
+        $provider = get_option('wp_ai_excerpt_api_provider', 'openai');
+        $style = $provider !== 'anthropic' ? 'display:none;' : '';
+        echo '<div class="wp-ai-excerpt-anthropic-fields" style="' . $style . '">';
+        echo '<input type="password" id="wp_ai_excerpt_anthropic_api_key" name="wp_ai_excerpt_anthropic_api_key" value="' . esc_attr($api_key) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Enter your Anthropic API key. Get one at', 'wp-ai-excerpt') . ' <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></p>';
+        echo '</div>';
     }
     
     /**
@@ -177,13 +238,37 @@ class WP_AI_Excerpt {
      */
     public function model_field_callback() {
         $model = get_option('wp_ai_excerpt_model', 'gpt-3.5-turbo');
+        $provider = get_option('wp_ai_excerpt_api_provider', 'openai');
+        $style = $provider !== 'openai' ? 'display:none;' : '';
         ?>
-        <select id="wp_ai_excerpt_model" name="wp_ai_excerpt_model">
-            <option value="gpt-3.5-turbo" <?php selected($model, 'gpt-3.5-turbo'); ?>>GPT-3.5 Turbo</option>
-            <option value="gpt-4" <?php selected($model, 'gpt-4'); ?>>GPT-4</option>
-            <option value="gpt-4-turbo-preview" <?php selected($model, 'gpt-4-turbo-preview'); ?>>GPT-4 Turbo</option>
-        </select>
-        <p class="description"><?php _e('Select the AI model to use for excerpt generation.', 'wp-ai-excerpt'); ?></p>
+        <div class="wp-ai-excerpt-openai-fields" style="<?php echo $style; ?>">
+            <select id="wp_ai_excerpt_model" name="wp_ai_excerpt_model">
+                <option value="gpt-3.5-turbo" <?php selected($model, 'gpt-3.5-turbo'); ?>>GPT-3.5 Turbo</option>
+                <option value="gpt-4" <?php selected($model, 'gpt-4'); ?>>GPT-4</option>
+                <option value="gpt-4-turbo-preview" <?php selected($model, 'gpt-4-turbo-preview'); ?>>GPT-4 Turbo</option>
+            </select>
+            <p class="description"><?php _e('Select the OpenAI model to use for excerpt generation.', 'wp-ai-excerpt'); ?></p>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Anthropic model field callback
+     */
+    public function anthropic_model_field_callback() {
+        $model = get_option('wp_ai_excerpt_anthropic_model', 'claude-3-haiku-20240307');
+        $provider = get_option('wp_ai_excerpt_api_provider', 'openai');
+        $style = $provider !== 'anthropic' ? 'display:none;' : '';
+        ?>
+        <div class="wp-ai-excerpt-anthropic-fields" style="<?php echo $style; ?>">
+            <select id="wp_ai_excerpt_anthropic_model" name="wp_ai_excerpt_anthropic_model">
+                <option value="claude-3-haiku-20240307" <?php selected($model, 'claude-3-haiku-20240307'); ?>>Claude 3 Haiku</option>
+                <option value="claude-3-sonnet-20240229" <?php selected($model, 'claude-3-sonnet-20240229'); ?>>Claude 3 Sonnet</option>
+                <option value="claude-3-opus-20240229" <?php selected($model, 'claude-3-opus-20240229'); ?>>Claude 3 Opus</option>
+                <option value="claude-3-5-sonnet-20241022" <?php selected($model, 'claude-3-5-sonnet-20241022'); ?>>Claude 3.5 Sonnet</option>
+            </select>
+            <p class="description"><?php _e('Select the Anthropic model to use for excerpt generation.', 'wp-ai-excerpt'); ?></p>
+        </div>
         <?php
     }
     
@@ -220,6 +305,20 @@ class WP_AI_Excerpt {
                 ?>
             </form>
         </div>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('#wp_ai_excerpt_api_provider').on('change', function() {
+                var provider = $(this).val();
+                if (provider === 'openai') {
+                    $('.wp-ai-excerpt-openai-fields').show();
+                    $('.wp-ai-excerpt-anthropic-fields').hide();
+                } else {
+                    $('.wp-ai-excerpt-openai-fields').hide();
+                    $('.wp-ai-excerpt-anthropic-fields').show();
+                }
+            });
+        });
+        </script>
         <?php
     }
     
@@ -351,9 +450,22 @@ class WP_AI_Excerpt {
     }
     
     /**
-     * Generate excerpt using OpenAI API
+     * Generate excerpt using AI API
      */
     private function generate_excerpt_with_ai($content, $length) {
+        $provider = get_option('wp_ai_excerpt_api_provider', 'openai');
+        
+        if ($provider === 'anthropic') {
+            return $this->generate_excerpt_with_anthropic($content, $length);
+        } else {
+            return $this->generate_excerpt_with_openai($content, $length);
+        }
+    }
+    
+    /**
+     * Generate excerpt using OpenAI API
+     */
+    private function generate_excerpt_with_openai($content, $length) {
         $api_key = get_option('wp_ai_excerpt_api_key');
         $model = get_option('wp_ai_excerpt_model', 'gpt-3.5-turbo');
         
@@ -415,6 +527,70 @@ class WP_AI_Excerpt {
         }
         
         return new WP_Error('unexpected_response', __('Unexpected response from API.', 'wp-ai-excerpt'));
+    }
+    
+    /**
+     * Generate excerpt using Anthropic API
+     */
+    private function generate_excerpt_with_anthropic($content, $length) {
+        $api_key = get_option('wp_ai_excerpt_anthropic_api_key');
+        $model = get_option('wp_ai_excerpt_anthropic_model', 'claude-3-haiku-20240307');
+        
+        if (empty($api_key)) {
+            return new WP_Error('no_api_key', __('Anthropic API key is not configured.', 'wp-ai-excerpt'));
+        }
+        
+        // Get custom prompt template or use default
+        $default_prompt = 'Create a concise and informative excerpt of approximately {length} words from the following content. The excerpt should accurately summarize the main points without being overly promotional:';
+        $prompt_template = get_option('wp_ai_excerpt_prompt', $default_prompt);
+        
+        // Replace {length} placeholder with actual length
+        $prompt_instruction = str_replace('{length}', $length, $prompt_template);
+        
+        // Combine prompt with content
+        $prompt = $prompt_instruction . "\n\n" . substr($content, 0, 3000); // Limit content to avoid token limits
+        
+        $response = wp_remote_post('https://api.anthropic.com/v1/messages', array(
+            'headers' => array(
+                'x-api-key' => $api_key,
+                'anthropic-version' => '2023-06-01',
+                'Content-Type' => 'application/json',
+            ),
+            'body' => json_encode(array(
+                'model' => $model,
+                'max_tokens' => $length * 3, // Approximate tokens (more generous for Claude)
+                'messages' => array(
+                    array(
+                        'role' => 'user',
+                        'content' => $prompt
+                    )
+                ),
+                'system' => 'You are a professional content writer who creates excerpts based on specific instructions.',
+            )),
+            'timeout' => 30,
+        ));
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+        
+        if (isset($data['error'])) {
+            return new WP_Error('api_error', $data['error']['message']);
+        }
+        
+        if (isset($data['content'][0]['text'])) {
+            $excerpt = trim($data['content'][0]['text']);
+            // Remove quotes from beginning and end if present
+            $excerpt = trim($excerpt, '"\'');
+            // Remove smart quotes as well
+            $excerpt = trim($excerpt, '""''');
+            return $excerpt;
+        }
+        
+        return new WP_Error('unexpected_response', __('Unexpected response from Anthropic API.', 'wp-ai-excerpt'));
     }
 }
 
