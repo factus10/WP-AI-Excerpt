@@ -1,0 +1,35 @@
+name: Build Plugin ZIP
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create plugin directory
+      run: mkdir -p wp-ai-excerpt
+    
+    - name: Copy plugin files
+      run: |
+        cp -r *.php wp-ai-excerpt/
+        cp -r assets wp-ai-excerpt/
+        cp readme.txt wp-ai-excerpt/
+        # Don't include development files in the plugin
+        # cp README.md wp-ai-excerpt/
+    
+    - name: Create ZIP file
+      run: zip -r wp-ai-excerpt.zip wp-ai-excerpt
+    
+    - name: Upload ZIP as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: wp-ai-excerpt
+        path: wp-ai-excerpt.zip
+        retention-days: 30

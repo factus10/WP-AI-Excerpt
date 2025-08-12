@@ -30,7 +30,20 @@ WP AI Excerpt seamlessly integrates AI-powered excerpt generation into your Word
 
 ## Installation
 
-1. Download or clone this repository to your WordPress plugins directory:
+### Method 1: Download ZIP (Recommended)
+
+1. Download the latest release:
+   - [Download Latest Release](https://github.com/factus10/WP-AI-Excerpt/releases/latest/download/wp-ai-excerpt.zip)
+   - Or visit the [Releases page](https://github.com/factus10/WP-AI-Excerpt/releases) for all versions
+
+2. In WordPress admin:
+   - Go to Plugins > Add New > Upload Plugin
+   - Choose the downloaded ZIP file
+   - Click "Install Now" and then "Activate"
+
+### Method 2: Manual Installation
+
+1. Clone this repository to your WordPress plugins directory:
    ```bash
    cd wp-content/plugins/
    git clone https://github.com/factus10/WP-AI-Excerpt.git
