@@ -5,12 +5,15 @@ on:
     tags:
       - 'v*' # Triggers when you push a tag like v1.0, v1.1, etc.
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Create plugin directory
       run: mkdir -p wp-ai-excerpt
@@ -26,25 +29,9 @@ jobs:
       run: zip -r wp-ai-excerpt.zip wp-ai-excerpt
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
+      with:
+        files: wp-ai-excerpt.zip
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: WP AI Excerpt ${{ github.ref }}
-        body: |
-          Changes in this release:
-          - See commit history for details
-        draft: false
-        prerelease: false
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./wp-ai-excerpt.zip
-        asset_name: wp-ai-excerpt.zip
-        asset_content_type: application/zip
